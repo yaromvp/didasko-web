@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Sin meta description intencionalmente para que los motores no lo indexen -->
+  <title>Didásko — Administración</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Tailwind CDN con paleta Didásko -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1A0F0A',
+            teal: { DEFAULT: '#116D6E', light: '#1a9a9b', dark: '#0d5253' },
+            gold:  { DEFAULT: '#AF9164', light: '#c4a87b', dark: '#8f7148' },
+            cream: { DEFAULT: '#F7F3E3', dark: '#ede8d4' },
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans:  ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="bg-primary font-sans text-cream min-h-screen">
+
+  <!-- =====================================================
+       PANTALLA DE LOGIN
+       Se muestra hasta que el administrador se autentique
+  ====================================================== -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center px-4">
+    <div class="login-card animate-slide-up">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <p class="font-serif text-3xl font-bold text-cream">Didásko</p>
+        <p class="text-gold text-sm mt-1">Panel de Administración</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Formulario de login -->
+      <form id="login-form" class="space-y-5" novalidate>
+        <div>
+          <label for="login-password" class="form-label">Contraseña de Administrador</label>
+          <div class="relative">
+            <input id="login-password" type="password" placeholder="••••••••"
+              class="form-input pr-12" autocomplete="current-password" required />
+            <button type="button" id="toggle-password"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-cream/40 hover:text-cream/80 transition-colors">
+              <i class="fas fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <p id="login-error" class="hidden text-red-400 text-sm flex items-center gap-2">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Contraseña incorrecta. Inténtalo de nuevo.</span>
+        </p>
+
+        <button id="login-btn" type="submit" class="btn-teal w-full justify-center py-3 text-sm font-semibold">
+          <i class="fas fa-lock-open text-xs"></i>
+          Ingresar al Panel
+        </button>
+      </form>
+
+      <p class="text-cream/25 text-xs text-center mt-6">
+        Acceso restringido — Solo administradores
+      </p>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       PANEL DE ADMINISTRACIÓN
+       Solo visible tras autenticación exitosa
+  ====================================================== -->
+  <div id="admin-panel" class="hidden min-h-screen flex-col">
+
+    <!-- Cabecera del panel -->
+    <header class="sticky top-0 z-40 border-b border-gold/10 px-4 py-4"
+      style="background:rgba(26,15,10,0.95); backdrop-filter:blur(12px);">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="font-serif text-xl font-bold text-cream">Didásko</span>
+          <span class="text-xs text-teal bg-teal/10 border border-teal/30 px-2 py-0.5 rounded-full">Admin</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btn-add-book"
+            class="btn-teal text-sm" aria-label="Agregar nuevo libro">
+            <i class="fas fa-plus text-xs"></i> Nuevo Libro
+          </button>
+          <a href="index.html"
+            class="btn-ghost text-sm" target="_blank" rel="noopener" aria-label="Ver catálogo público">
+            <i class="fas fa-external-link-alt text-xs"></i> Ver Catálogo
+          </a>
+          <button id="btn-logout" class="btn-ghost text-sm text-red-400 hover:text-red-300" aria-label="Cerrar sesión">
+            <i class="fas fa-sign-out-alt text-xs"></i> Salir
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido principal del admin -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+      <!-- Tarjetas de estadísticas -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="book-card p-5">
+          <p class="text-cream/50 text-xs mb-1 uppercase tracking-wider">Total Libros</p>
+          <p id="stat-total" class="font-serif text-3xl font-bold text-cream">—</p>
+        </div>
+        <div class="book-card p-5">
+          <p class="text-cream/50 text-xs mb-1 uppercase tracking-wider">Destacados</p>
+          <p id="stat-featured" class="font-serif text-3xl font-bold text-gold">—</p>
+        </div>
+        <div class="book-card p-5">
+          <p class="text-cream/50 text-xs mb-1 uppercase tracking-wider">Sin Stock</p>
+          <p id="stat-no-stock" class="font-serif text-3xl font-bold text-red-400">—</p>
+        </div>
+        <div class="book-card p-5">
+          <p class="text-cream/50 text-xs mb-1 uppercase tracking-wider">Categorías</p>
+          <p id="stat-cats" class="font-serif text-3xl font-bold text-teal">—</p>
+        </div>
+      </div>
+
+      <!-- Barra de herramientas de la tabla -->
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <h2 class="font-serif text-xl font-semibold text-cream">Catálogo de Libros</h2>
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gold/50 text-xs"></i>
+          <input id="admin-search" type="text" placeholder="Buscar en el catálogo..."
+            class="form-input pl-8 py-2 text-sm w-64" />
+        </div>
+      </div>
+
+      <!-- Tabla de libros -->
+      <div class="overflow-x-auto rounded-2xl border border-gold/10">
+        <table class="admin-table w-full" id="admin-books-table">
+          <thead>
+            <tr>
+              <th class="text-left">Portada</th>
+              <th class="text-left">Título / Autor</th>
+              <th class="text-left">Categoría</th>
+              <th class="text-left">Precio</th>
+              <th class="text-left">Stock</th>
+              <th class="text-left">Destacado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-books-tbody">
+            <!-- Se llena con JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío de la tabla -->
+      <div id="admin-empty" class="hidden text-center py-16">
+        <i class="fas fa-book text-4xl text-gold/20 mb-3"></i>
+        <p class="text-cream/40">No hay libros en el catálogo. ¡Agrega el primero!</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- =====================================================
+       MODAL AGREGAR / EDITAR LIBRO
+  ====================================================== -->
+  <div id="book-form-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="form-modal-title">
+    <div class="modal-content p-6 md:p-8 max-w-xl">
+      <div class="flex items-center justify-between mb-6">
+        <h3 id="form-modal-title" class="font-serif text-xl font-semibold text-cream">Nuevo Libro</h3>
+        <button id="form-modal-close" aria-label="Cerrar formulario"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+          <i class="fas fa-times text-cream/70 text-sm"></i>
+        </button>
+      </div>
+
+      <form id="book-form" class="space-y-4" novalidate>
+        <!-- ID oculto para edición -->
+        <input type="hidden" id="book-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label for="book-titulo" class="form-label">Título *</label>
+            <input id="book-titulo" type="text" class="form-input" placeholder="El nombre del libro" required />
+          </div>
+          <div>
+            <label for="book-autor" class="form-label">Autor *</label>
+            <input id="book-autor" type="text" class="form-input" placeholder="Nombre del autor" required />
+          </div>
+          <div>
+            <label for="book-categoria" class="form-label">Categoría *</label>
+            <input id="book-categoria" type="text" class="form-input" placeholder="Ej: Novela, Ensayo..." required />
+          </div>
+          <div>
+            <label for="book-precio" class="form-label">Precio *</label>
+            <input id="book-precio" type="number" min="0" step="0.01" class="form-input" placeholder="0.00" required />
+          </div>
+          <div>
+            <label for="book-stock" class="form-label">Stock *</label>
+            <input id="book-stock" type="number" min="0" class="form-input" placeholder="0" required />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="book-imagen" class="form-label">URL de Imagen (desde Google Drive u otro)</label>
+            <input id="book-imagen" type="url" class="form-input" placeholder="https://..." />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="book-desc" class="form-label">Descripción</label>
+            <textarea id="book-desc" rows="3" class="form-input resize-none"
+              placeholder="Breve descripción del libro..."></textarea>
+          </div>
+          <div class="sm:col-span-2 flex items-center gap-3">
+            <input id="book-destacado" type="checkbox"
+              class="w-4 h-4 accent-teal cursor-pointer" />
+            <label for="book-destacado" class="text-sm text-cream/80 cursor-pointer">
+              Marcar como <strong class="text-gold">Destacado</strong> en el catálogo
+            </label>
+          </div>
+        </div>
+
+        <!-- Mensaje de error del formulario -->
+        <p id="form-error" class="hidden text-red-400 text-sm flex items-center gap-2">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="form-error-msg">Completa los campos requeridos.</span>
+        </p>
+
+        <div class="flex gap-3 pt-2">
+          <button type="submit" id="form-submit-btn" class="btn-teal flex-1 justify-center py-3 font-semibold">
+            <i class="fas fa-save text-xs"></i>
+            <span id="form-submit-label">Guardar Libro</span>
+          </button>
+          <button type="button" id="form-cancel-btn" class="btn-ghost px-6">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL CONFIRMAR ELIMINACIÓN
+  ====================================================== -->
+  <div id="delete-modal" class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <div class="modal-content p-6 md:p-8 max-w-sm text-center">
+      <div class="w-14 h-14 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-trash text-red-400 text-xl"></i>
+      </div>
+      <h3 id="delete-modal-title" class="font-serif text-xl font-semibold text-cream mb-2">Eliminar Libro</h3>
+      <p class="text-cream/60 text-sm mb-6">
+        ¿Estás seguro de que deseas eliminar
+        <strong id="delete-book-name" class="text-cream"></strong>?
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="flex gap-3">
+        <button id="delete-confirm-btn"
+          class="flex-1 bg-red-500/80 hover:bg-red-500 text-white font-semibold py-2.5 rounded-full transition-colors text-sm">
+          <i class="fas fa-trash text-xs mr-1"></i> Sí, eliminar
+        </button>
+        <button id="delete-cancel-btn" class="btn-ghost flex-1">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de notificaciones -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Configuración global (APPS_SCRIPT_URL, WhatsApp, Email...) -->
+  <script src="js/config.js"></script>
+  <!-- Script del panel de administración -->
+  <script src="js/admin.js"></script>
+</body>
+</html>

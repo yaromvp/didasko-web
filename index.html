@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Didásko — Tu Librería de Confianza</title>
+  <meta name="description"
+    content="Didásko Librería — Encuentra tu próxima lectura favorita. Catálogo completo de libros. Pedidos por WhatsApp o Email." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Font Awesome (iconos) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Tailwind CSS CDN con configuración de paleta Didásko -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1A0F0A',
+            teal: { DEFAULT: '#116D6E', light: '#1a9a9b', dark: '#0d5253' },
+            gold: { DEFAULT: '#AF9164', light: '#c4a87b', dark: '#8f7148' },
+            cream: { DEFAULT: '#F7F3E3', dark: '#ede8d4' },
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="bg-primary font-sans text-cream min-h-screen">
+
+  <!-- =====================================================
+       BARRA DE NAVEGACIÓN FIJA
+       Se vuelve opaca + blur al hacer scroll (ver main.js)
+  ====================================================== -->
+  <nav id="navbar">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 md:h-20">
+
+        <!-- Logo -->
+        <a href="index.html" class="flex items-center gap-3 group" aria-label="Didásko - Inicio">
+          <img src="assets/isotipo.svg" alt="Isotipo Didásko"
+            class="h-10 md:h-12 w-auto transition-transform group-hover:scale-110 duration-300">
+          <div class="flex flex-col leading-none">
+            <span class="font-serif text-xl md:text-2xl font-bold text-cream tracking-wide">Didásko</span>
+            <span class="text-teal font-serif italic text-xs opacity-80">Librería</span>
+          </div>
+        </a>
+
+        <!-- Búsqueda (solo desktop) -->
+        <div class="hidden md:block flex-1 max-w-sm mx-8 relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gold opacity-60 text-sm"></i>
+          <input id="search-desktop" type="text" placeholder="Buscar libros, autores..." class="search-input"
+            autocomplete="off" />
+        </div>
+
+        <!-- Acciones de navegación -->
+        <div class="flex items-center gap-3">
+          <!-- Redes Sociales (Desktop) -->
+          <div class="hidden lg:flex items-center gap-4 mr-4 border-r border-gold/10 pr-6">
+            <a href="https://www.facebook.com/libreriadidasko" target="_blank" rel="noopener"
+              class="text-cream/40 hover:text-teal transition-colors" aria-label="Facebook">
+              <i class="fab fa-facebook text-lg"></i>
+            </a>
+            <a href="https://www.instagram.com/libreriadidasko" target="_blank" rel="noopener"
+              class="text-cream/40 hover:text-teal transition-colors" aria-label="Instagram">
+              <i class="fab fa-instagram text-lg"></i>
+            </a>
+            <a href="https://www.youtube.com/@libreriadidasko" target="_blank" rel="noopener"
+              class="text-cream/40 hover:text-teal transition-colors" aria-label="YouTube">
+              <i class="fab fa-youtube text-lg"></i>
+            </a>
+            <a href="https://www.tiktok.com/@libreriadidasko" target="_blank" rel="noopener"
+              class="text-cream/40 hover:text-teal transition-colors" aria-label="TikTok">
+              <i class="fab fa-tiktok text-lg"></i>
+            </a>
+          </div>
+
+          <!-- Búsqueda (mobile - abre barra) -->
+          <button id="btn-search-mobile" aria-label="Buscar"
+            class="md:hidden w-10 h-10 rounded-full flex items-center justify-center border border-gold/20 hover:border-teal transition-colors">
+            <i class="fas fa-search text-gold text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de búsqueda mobile (oculta por defecto) -->
+      <div id="mobile-search-bar" class="pb-3 hidden md:hidden">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gold opacity-60 text-sm"></i>
+          <input id="search-mobile" type="text" placeholder="Buscar libros, autores..." class="search-input"
+            autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =====================================================
+       HERO SECTION
+  ====================================================== -->
+  <header
+    class="hero-bg min-h-[90vh] flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
+    <div class="max-w-3xl mx-auto animate-fade-in relative z-10">
+      <img src="assets/imagotipo.svg" alt="Didásko Librería" class="h-48 md:h-64 mx-auto mb-8 drop-shadow-2xl">
+      <h1 class="sr-only">Didásko Librería</h1>
+      <div class="hero-line mx-auto mb-6"></div>
+      <p class="text-cream text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+        Explora nuestro catálogo, encuentra tu próxima lectura favorita y pídela directamente por WhatsApp.
+      </p>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       SECCIÓN PRINCIPAL: FILTROS + GRID DE LIBROS
+  ====================================================== -->
+  <main id="catalogo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+
+    <!-- Filtros por categoría (se generan dinámicamente) -->
+    <div class="flex items-center gap-3 overflow-x-auto pb-4 pt-4 scrollbar-hide" id="filter-bar">
+      <button class="filter-pill active" data-category="todos">Todos</button>
+      <!-- Las demás categorías se insertan desde JS -->
+    </div>
+
+    <div class="divider mt-0 mb-8"></div>
+
+    <!-- Estado de carga / sin resultados -->
+    <div id="loading-state" class="grid"
+      style="grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:1.5rem;">
+      <!-- Skeletons generados por JS -->
+    </div>
+
+    <!-- Grid de libros (poblado por JS) -->
+    <div id="books-grid" class="animate-fade-in"></div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div id="empty-state" class="hidden text-center py-20">
+      <i class="fas fa-book-open text-5xl text-gold/30 mb-4"></i>
+      <p class="text-cream/50 text-lg">No encontramos libros con ese criterio.</p>
+      <button onclick="resetFilters()" class="btn-ghost mt-4">Ver todos los libros</button>
+    </div>
+  </main>
+
+  <!-- =====================================================
+       MODAL DE DETALLE DE LIBRO
+  ====================================================== -->
+  <div id="book-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content p-6 md:p-8">
+
+      <!-- Botón cerrar -->
+      <button id="modal-close" aria-label="Cerrar detalle"
+        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+        style="position:sticky; float:right;">
+        <i class="fas fa-times text-cream/70"></i>
+      </button>
+
+      <!-- Contenido del modal (2 columnas en desktop) -->
+      <div class="flex flex-col md:flex-row gap-8">
+
+        <!-- Imagen portada -->
+        <div class="w-full md:w-64 flex-shrink-0">
+          <div class="book-img-wrapper rounded-xl shadow-2xl" style="aspect-ratio:2/3;">
+            <img id="modal-img" src="" alt="" class="w-full h-full object-cover rounded-xl" />
+          </div>
+        </div>
+
+        <!-- Información del libro -->
+        <div class="flex-1 min-w-0">
+          <!-- Categoría badge -->
+          <span id="modal-category"
+            class="inline-block text-xs font-semibold text-teal bg-teal/10 border border-teal/30 px-3 py-1 rounded-full mb-3 tracking-wider uppercase"></span>
+
+          <!-- Título y autor -->
+          <h2 id="modal-title" class="font-serif text-2xl md:text-3xl font-bold text-cream leading-snug mb-1"></h2>
+          <p id="modal-author" class="text-gold text-base mb-4 opacity-90"></p>
+
+          <div class="divider my-4"></div>
+
+          <!-- Descripción -->
+          <p id="modal-desc" class="text-cream/75 text-sm leading-relaxed mb-6"></p>
+
+          <!-- Precio y stock -->
+          <div class="flex items-center gap-4 mb-6 flex-wrap">
+            <span id="modal-price" class="font-serif text-3xl font-bold text-gold"></span>
+            <span id="modal-stock" class="stock-badge"></span>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="flex flex-col sm:flex-row gap-3" id="modal-actions">
+            <a id="btn-whatsapp" href="#" target="_blank" rel="noopener" class="btn-whatsapp justify-center"
+              aria-label="Pedir por WhatsApp">
+              <i class="fab fa-whatsapp text-lg"></i> Pedir por WhatsApp
+            </a>
+            <a id="btn-email" href="#" class="btn-email justify-center" aria-label="Consultar por Email">
+              <i class="fas fa-envelope text-sm"></i> Consultar por Email
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+  <footer class="border-t border-gold/10 py-10 px-4 text-center">
+    <p class="font-serif text-xl text-cream/80 mb-1">Didásko <span class="italic text-gold">Librería</span></p>
+    <p class="text-cream/40 text-sm mb-1">
+      Escríbenos al
+      <a id="footer-whatsapp" href="#" target="_blank" class="text-teal hover:underline">WhatsApp</a>
+      o al
+      <a id="footer-email" href="#" class="text-teal hover:underline">correo electrónico</a>
+    </p>
+    <div class="flex justify-center gap-8 mb-1">
+      <a href="https://www.facebook.com/libreriadidasko" target="_blank" rel="noopener"
+        class="text-cream/30 hover:text-teal transition-all hover:scale-110 text-2xl" aria-label="Facebook">
+        <i class="fab fa-facebook"></i>
+      </a>
+      <a href="https://www.instagram.com/libreriadidasko" target="_blank" rel="noopener"
+        class="text-cream/30 hover:text-teal transition-all hover:scale-110 text-2xl" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://www.youtube.com/@libreriadidasko" target="_blank" rel="noopener"
+        class="text-cream/30 hover:text-teal transition-all hover:scale-110 text-2xl" aria-label="YouTube">
+        <i class="fab fa-youtube"></i>
+      </a>
+      <a href="https://www.tiktok.com/@libreriadidasko" target="_blank" rel="noopener"
+        class="text-cream/30 hover:text-teal transition-all hover:scale-110 text-2xl" aria-label="TikTok">
+        <i class="fab fa-tiktok"></i>
+      </a>
+    </div>
+    <p class="text-cream/20 text-xs">&copy; <span id="year"></span> Didásko. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- =====================================================
+       CONTENEDOR DE TOASTS (notificaciones)
+  ====================================================== -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Configuración global (APPS_SCRIPT_URL, WhatsApp, Email...) -->
+  <script src="js/config.js"></script>
+  <!-- Script principal del catálogo -->
+  <script src="js/main.js"></script>
+</body>
+
+</html>
