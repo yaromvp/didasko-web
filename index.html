@@ -201,14 +201,31 @@
           </div>
 
           <!-- Botones de acción -->
-          <div class="flex flex-col sm:flex-row gap-3" id="modal-actions">
-            <a id="btn-whatsapp" href="#" target="_blank" rel="noopener" class="btn-whatsapp justify-center"
+          <div class="flex flex-col sm:flex-row gap-3 flex-wrap" id="modal-actions">
+            <a id="btn-whatsapp" href="#" target="_blank" rel="noopener" class="btn-whatsapp justify-center flex-1"
               aria-label="Pedir por WhatsApp">
               <i class="fab fa-whatsapp text-lg"></i> Pedir por WhatsApp
             </a>
-            <a id="btn-email" href="#" class="btn-email justify-center" aria-label="Consultar por Email">
+            <a id="btn-email" href="#" class="btn-email justify-center flex-1" aria-label="Consultar por Email">
               <i class="fas fa-envelope text-sm"></i> Consultar por Email
             </a>
+            <div class="relative flex-none sm:flex-none w-full sm:w-auto">
+              <button id="btn-share-modal" class="btn-ghost flex items-center justify-center gap-2 px-4 py-2 w-full" aria-label="Compartir libro">
+                <i class="fas fa-share-alt"></i> Compartir
+              </button>
+              <!-- Menú de compartir -->
+              <div id="share-menu-modal" class="hidden absolute bottom-full right-0 mb-2 w-48 bg-primary border border-gold/20 rounded-lg shadow-xl overflow-hidden z-50 transform origin-bottom-right transition-all">
+                <button id="btn-fb-modal" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors">
+                  <i class="fab fa-facebook text-[#1877F2] text-lg w-5 text-center"></i> <span class="text-cream text-sm">Facebook</span>
+                </button>
+                <button id="btn-ig-modal" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors border-t border-gold/10">
+                  <i class="fab fa-instagram text-[#E4405F] text-lg w-5 text-center"></i> <span class="text-cream text-sm">Instagram</span>
+                </button>
+                <button id="btn-wa-share-modal" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors border-t border-gold/10">
+                  <i class="fab fa-whatsapp text-[#25D366] text-lg w-5 text-center"></i> <span class="text-cream text-sm">WhatsApp</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -253,9 +270,9 @@
   <div id="toast-container" aria-live="polite"></div>
 
   <!-- Configuración global (APPS_SCRIPT_URL, WhatsApp, Email...) -->
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=1"></script>
   <!-- Script principal del catálogo -->
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=1"></script>
 </body>
 
 </html>

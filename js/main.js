@@ -96,6 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') cerrarModal();
   });
 
+  // Cerrar menús de compartir al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    const isShareBtn = e.target.closest('[onclick^="toggleShareMenu"], #btn-share-modal');
+    if (!isShareBtn) {
+      document.querySelectorAll('[id^="share-menu-"]').forEach(m => m.classList.add('hidden'));
+    }
+  });
+
   // Toggle búsqueda mobile
   document.getElementById('btn-search-mobile').addEventListener('click', () => {
     const bar = document.getElementById('mobile-search-bar');
@@ -153,10 +161,11 @@ async function cargarLibros() {
     if (CONFIG.USAR_DEMO) {
       console.warn('[Didásko] Usando datos demo. Configura APPS_SCRIPT_URL en main.js');
       setTimeout(() => {
-        todosLosLibros = LIBROS_DEMO;
+        todosLosLibros = ordenarConPrioridadDestacados([...LIBROS_DEMO]);
         ocultarSkeletons();
         construirFiltros();
         renderLibros();
+        verificarDeepLink();
       }, 800); // Simular tiempo de carga
     }
     return;
@@ -168,19 +177,52 @@ async function cargarLibros() {
     const data = await response.json();
 
     if (data.success && Array.isArray(data.books)) {
-      todosLosLibros = data.books;
+      todosLosLibros = ordenarConPrioridadDestacados(data.books);
     } else {
       throw new Error(data.error || 'Respuesta inválida');
     }
   } catch (err) {
     console.error('[Didásko] Error al cargar libros:', err);
     mostrarToast('No se pudo cargar el catálogo. Usando datos de ejemplo.', 'error');
-    todosLosLibros = LIBROS_DEMO; // Fallback a demo
+    todosLosLibros = ordenarConPrioridadDestacados([...LIBROS_DEMO]); // Fallback a demo
   }
 
   ocultarSkeletons();
   construirFiltros();
   renderLibros();
+  verificarDeepLink();
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function ordenarConPrioridadDestacados(libros) {
+  // 1. Identificar destacados y normales
+  const destacados = libros.filter(l => l.destacado === true || l.destacado === 'TRUE' || l.destacado === 'VERDADERO');
+  const normales = libros.filter(l => !(l.destacado === true || l.destacado === 'TRUE' || l.destacado === 'VERDADERO'));
+
+  // 2. Barajar ambos grupos
+  shuffleArray(destacados);
+  shuffleArray(normales);
+
+  // 3. Tomar unos cuantos destacados para el inicio (ej. 2)
+  const cantidadInicio = Math.min(2, destacados.length);
+  const destacadosInicio = destacados.splice(0, cantidadInicio);
+
+  // 4. Mezclar el resto de destacados con los normales
+  const restoMezclado = [...destacados, ...normales];
+  shuffleArray(restoMezclado);
+
+  // 5. Retornar el arreglo combinado
+  return [...destacadosInicio, ...restoMezclado];
 }
 
 // ============================================================
@@ -307,7 +349,7 @@ function crearTarjetaHTML(libro, index) {
     ? `<div class="featured-badge">⭐ Destacado</div>`
     : '';
 
-  const precio = libro.precio ? `$${parseFloat(libro.precio).toFixed(2)}` : '';
+  const precio = libro.precio ? `S/ ${parseFloat(libro.precio).toFixed(2)}` : '';
 
   const delayClass = `card-delay-${(index % 4) + 1}`;
 
@@ -317,6 +359,23 @@ function crearTarjetaHTML(libro, index) {
       onkeydown="if(event.key==='Enter'||event.key===' ') this.click()">
       <div class="book-img-wrapper relative">
         ${featuredBadge}
+        <!-- Contenedor del botón de compartir y menú -->
+        <div class="absolute top-2 right-2 z-20 flex flex-col items-end" onclick="event.stopPropagation()">
+          <button onclick="toggleShareMenu('card-${libro.id}', event)" class="w-8 h-8 rounded-full bg-primary/80 hover:bg-teal text-cream/90 hover:text-white flex items-center justify-center backdrop-blur-sm transition-colors shadow-md" aria-label="Compartir opciones">
+            <i class="fas fa-share-alt text-sm pointer-events-none"></i>
+          </button>
+          <div id="share-menu-card-${libro.id}" class="hidden mt-2 w-36 bg-primary border border-gold/20 rounded-lg shadow-xl overflow-hidden">
+            <button onclick="compartirFacebook('${libro.id}', event)" class="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-left transition-colors">
+              <i class="fab fa-facebook text-[#1877F2] text-sm w-4 text-center pointer-events-none"></i> <span class="text-cream text-xs pointer-events-none">Facebook</span>
+            </button>
+            <button onclick="compartirInstagram('${libro.id}', event)" class="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-left transition-colors border-t border-gold/10">
+              <i class="fab fa-instagram text-[#E4405F] text-sm w-4 text-center pointer-events-none"></i> <span class="text-cream text-xs pointer-events-none">Instagram</span>
+            </button>
+            <button onclick="compartirWhatsApp('${libro.id}', event)" class="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-left transition-colors border-t border-gold/10">
+              <i class="fab fa-whatsapp text-[#25D366] text-sm w-4 text-center pointer-events-none"></i> <span class="text-cream text-xs pointer-events-none">WhatsApp</span>
+            </button>
+          </div>
+        </div>
         <img
           src="${libro.imagen_url || ''}"
           alt="Portada de ${libro.titulo}"
@@ -366,7 +425,7 @@ function abrirModal(libro) {
   document.getElementById('modal-title').textContent = libro.titulo || '';
   document.getElementById('modal-author').textContent = `por ${libro.autor || ''}`;
   document.getElementById('modal-desc').textContent = libro.descripcion || 'Sin descripción disponible.';
-  document.getElementById('modal-price').textContent = libro.precio ? `$${parseFloat(libro.precio).toFixed(2)}` : '';
+  document.getElementById('modal-price').textContent = libro.precio ? `S/ ${parseFloat(libro.precio).toFixed(2)}` : '';
 
   /*const stockEl = document.getElementById('modal-stock');
   stockEl.className = `stock-badge ${stockClass}`;
@@ -385,7 +444,7 @@ function abrirModal(libro) {
   const cuerpoEmail = encodeURIComponent(
     `Hola, ${CONFIG.NOMBRE_LIBRERIA}.\n\n` +
     `Me gustaría consultar sobre el libro "${libro.titulo}" de ${libro.autor}.\n` +
-    `Precio: $${libro.precio}\n\n` +
+    `Precio: S/ ${libro.precio}\n\n` +
     `${stockNum === 0 ? 'Me gustaría saber si es posible encargarlo.' : 'Por favor, indíquenme disponibilidad y forma de pago.'}\n\nGracias.`
   );
   document.getElementById('btn-email').href =
@@ -395,6 +454,18 @@ function abrirModal(libro) {
   const actions = document.getElementById('modal-actions');
   actions.style.opacity = '1';
   actions.style.pointerEvents = 'auto';
+
+  // Configurar botón compartir del modal
+  const btnShareModal = document.getElementById('btn-share-modal');
+  if (btnShareModal) {
+    btnShareModal.onclick = (e) => toggleShareMenu('modal', e);
+  }
+  const btnFbModal = document.getElementById('btn-fb-modal');
+  if (btnFbModal) btnFbModal.onclick = (e) => compartirFacebook(libro.id, e);
+  const btnIgModal = document.getElementById('btn-ig-modal');
+  if (btnIgModal) btnIgModal.onclick = (e) => compartirInstagram(libro.id, e);
+  const btnWaShareModal = document.getElementById('btn-wa-share-modal');
+  if (btnWaShareModal) btnWaShareModal.onclick = (e) => compartirWhatsApp(libro.id, e);
 
   // Mostrar modal
   document.getElementById('book-modal').classList.add('open');
@@ -440,4 +511,104 @@ function mostrarToast(mensaje, tipo = 'success') {
     toast.style.transition = 'opacity 0.3s ease';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+// ============================================================
+// COMPARTIR LIBRO: Menú, Facebook e Instagram
+// ============================================================
+function toggleShareMenu(menuId, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
+  // Cerrar todos los demás menús primero
+  document.querySelectorAll('[id^="share-menu-"]').forEach(menu => {
+    if (menu.id !== `share-menu-${menuId}`) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  const menu = document.getElementById(`share-menu-${menuId}`);
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+}
+
+function compartirFacebook(id, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
+  // Ocultar menús
+  document.querySelectorAll('[id^="share-menu-"]').forEach(menu => menu.classList.add('hidden'));
+
+  const urlBase = window.location.origin + window.location.pathname;
+  const shareUrl = encodeURIComponent(`${urlBase}?libro=${id}`);
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+  
+  window.open(facebookUrl, '_blank', 'width=600,height=400');
+}
+
+async function compartirInstagram(id, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
+  // Ocultar menús
+  document.querySelectorAll('[id^="share-menu-"]').forEach(menu => menu.classList.add('hidden'));
+
+  const libro = todosLosLibros.find(l => l.id === id);
+  if (!libro) return;
+
+  const urlBase = window.location.origin + window.location.pathname;
+  const shareUrl = `${urlBase}?libro=${id}`;
+  const shareText = `Mira este libro: "${libro.titulo}" de ${libro.autor} en Didásko Librería.\n\n${shareUrl}`;
+
+  try {
+    await navigator.clipboard.writeText(shareText);
+    mostrarToast('Enlace copiado. Abre Instagram para compartir', 'success');
+  } catch (err) {
+    console.error('[Didásko] Error al copiar:', err);
+    mostrarToast('Error al copiar enlace', 'error');
+  }
+}
+
+function compartirWhatsApp(id, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
+  // Ocultar menús
+  document.querySelectorAll('[id^="share-menu-"]').forEach(menu => menu.classList.add('hidden'));
+
+  const libro = todosLosLibros.find(l => l.id === id);
+  if (!libro) return;
+
+  const urlBase = window.location.origin + window.location.pathname;
+  const shareUrl = `${urlBase}?libro=${id}`;
+  const shareText = encodeURIComponent(`Mira este libro: "${libro.titulo}" de ${libro.autor} en Didásko Librería.\n\n${shareUrl}`);
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
+  
+  window.open(whatsappUrl, '_blank');
+}
+
+// ============================================================
+// DEEP LINKING — Verificar si la URL pide abrir un libro
+// ============================================================
+function verificarDeepLink() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const libroId = urlParams.get('libro');
+  
+  if (libroId) {
+    const libro = todosLosLibros.find(l => l.id === libroId);
+    if (libro) {
+      abrirModal(libro);
+      // Limpiar la URL para que no quede el parámetro si el usuario recarga
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
 }
